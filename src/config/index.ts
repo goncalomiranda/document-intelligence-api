@@ -15,6 +15,7 @@ export const config = {
         apiUrl: process.env.OLLAMA_API_URL || 'http://localhost:11434',
         model: process.env.OLLAMA_MODEL || 'llama3.2:3b',
         timeout: parseInt(process.env.OLLAMA_TIMEOUT || '60000', 10),
+        defaultPrompt: process.env.OLLAMA_DEFAULT_PROMPT || 'Analyze this document and provide a concise summary with key information.',
     },
 
     rateLimit: {
@@ -23,7 +24,7 @@ export const config = {
     },
 
     upload: {
-        maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
+        maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '3145728', 10), // 3MB
         allowedMimeTypes: (process.env.ALLOWED_MIME_TYPES || 'application/pdf,image/png,image/jpeg').split(','),
     },
 
