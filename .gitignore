@@ -1,0 +1,10 @@
+node_modules/
+dist/
+debug/
+.env
+*.log
+.DS_Store
+coverage/
+.vscode/
+uploads/
+temp/
