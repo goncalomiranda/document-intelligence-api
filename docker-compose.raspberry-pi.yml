@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  document-intelligence-api:
+    image: gmiranda/document-intelligence-api:latest
+    container_name: document-intelligence-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - API_KEY_CARDOC=${API_KEY_CARDOC}
+      - API_KEY_MORTGAGE=${API_KEY_MORTGAGE}
+      - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-60000}
+      - OLLAMA_DEFAULT_PROMPT=${OLLAMA_DEFAULT_PROMPT:-Analyze this document and provide a concise summary with key information.}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-3145728}
+      - ALLOWED_MIME_TYPES=${ALLOWED_MIME_TYPES:-application/pdf,image/png,image/jpeg}
+      - DEBUG_SAVE_FILES=${DEBUG_SAVE_FILES:-true}
+      - DEBUG_DIR=${DEBUG_DIR:-./debug}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ./debug:/app/debug
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/api/v1/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
