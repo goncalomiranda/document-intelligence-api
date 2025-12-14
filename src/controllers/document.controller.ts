@@ -3,6 +3,7 @@ import { OCRService } from '../services/ocr.service';
 import { LLMService } from '../services/llm.service';
 import logger from '../utils/logger';
 import { AnalyzeDocumentResponse } from '../types';
+import { config } from '../config';
 
 const ocrService = new OCRService();
 const llmService = new LLMService();
@@ -28,12 +29,10 @@ export class DocumentController {
                 return;
             }
 
-            // Get optional fields with defaults
-            const {
-                prompt = 'Analyze this document and provide a concise summary with key information.',
-                model,
-                language = 'eng'
-            } = req.body;
+            // Get optional fields from headers and body
+            const prompt = req.headers['x-prompt'] as string || config.ollama.defaultPrompt;
+            const model = req.headers['x-model'] as string;
+            const language = req.headers['x-language'] as string || 'eng';
 
             const fileType = req.file.mimetype;
             const client = (req as any).client || 'unknown';
