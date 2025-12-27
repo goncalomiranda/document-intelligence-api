@@ -99,31 +99,48 @@ POST /api/v1/documents/analyze
 Content-Type: multipart/form-data
 X-API-Key: your-api-key-here
 
+Headers:
+- X-API-Key: <your-api-key>
+- X-Prompt: (optional) <Your custom LLM prompt>
+- X-Model: (optional) Ollama model name (default: llama3.2:3b)
+- X-Language: (optional) OCR language - 'eng' or 'por' (default: eng)
+
 Form Data:
 - file: <PDF or image file>
-- prompt: <Your custom LLM prompt>
-- model: (optional) Ollama model name (default: llama3.2:3b)
-- language: (optional) OCR language (default: eng)
 ```
 
-**Example using cURL:**
+**Supported Languages:**
+- `eng` - English (default)
+- `por` - Portuguese
+
+**Example using cURL (English):**
 ```bash
 curl -X POST http://localhost:3000/api/v1/documents/analyze \
   -H "X-API-Key: cardoc-secret-key-here" \
-  -F "file=@document.pdf" \
-  -F "prompt=Summarize this document and highlight key points"
+  -H "X-Prompt: Summarize this document and highlight key points" \
+  -F "file=@document.pdf"
+```
+
+**Example using cURL (Portuguese):**
+```bash
+curl -X POST http://localhost:3000/api/v1/documents/analyze \
+  -H "X-API-Key: cardoc-secret-key-here" \
+  -H "X-Language: por" \
+  -H "X-Prompt: Resuma este documento e destaque os pontos principais" \
+  -F "file=@document.pdf"
 ```
 
 **Example using JavaScript/fetch:**
 ```javascript
 const formData = new FormData();
 formData.append('file', fileInput.files[0]);
-formData.append('prompt', 'Analyze this car document...');
 
 const response = await fetch('http://localhost:3000/api/v1/documents/analyze', {
   method: 'POST',
   headers: {
     'X-API-Key': 'your-api-key-here',
+    'X-Prompt': 'Analyze this car document...',
+    'X-Language': 'por', // Use 'eng' for English or 'por' for Portuguese
   },
   body: formData,
 });

@@ -1,7 +1,9 @@
+export type SupportedLanguage = 'eng' | 'por';
+
 export interface AnalyzeDocumentRequest {
     prompt: string;
     model?: string;
-    language?: string;
+    language?: SupportedLanguage;
     saveDebug?: boolean;
 }
 

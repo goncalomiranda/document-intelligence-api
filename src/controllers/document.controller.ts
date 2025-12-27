@@ -32,12 +32,26 @@ export class DocumentController {
             // Get optional fields from headers and body
             const prompt = req.headers['x-prompt'] as string || config.ollama.defaultPrompt;
             const model = req.headers['x-model'] as string;
-            const language = req.headers['x-language'] as string || 'eng';
+            const languageParam = req.headers['x-language'] as string || 'eng';
+
+            // Validate language parameter
+            const supportedLanguages = ['eng', 'por'];
+            if (!supportedLanguages.includes(languageParam)) {
+                res.status(400).json({
+                    success: false,
+                    error: {
+                        message: `Unsupported language: ${languageParam}. Supported languages: ${supportedLanguages.join(', ')}`,
+                        code: 'UNSUPPORTED_LANGUAGE',
+                    },
+                });
+                return;
+            }
+            const language = languageParam;
 
             const fileType = req.file.mimetype;
             const client = (req as any).client || 'unknown';
 
-            logger.info(`Processing document for client: ${client}, type: ${fileType}`);
+            logger.info(`Processing document for client: ${client}, type: ${fileType}, language: ${language}`);
 
             // Step 1: Extract text via OCR
             let ocrResult;
@@ -58,6 +72,8 @@ export class DocumentController {
             }
 
             logger.info(`OCR completed: ${ocrResult.text.length} characters in ${ocrResult.timeSeconds}s`);
+
+            logger.debug(`Extracted Text: ${ocrResult.text}`);
 
             // Step 2: Analyze with LLM
             const llmResult = await llmService.analyzeText(ocrResult.text, prompt, model);
