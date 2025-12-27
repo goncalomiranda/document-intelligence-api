@@ -8,6 +8,9 @@ import logger from './utils/logger';
 export const createApp = (): Application => {
     const app = express();
 
+    // Trust proxy for Cloudflare and other reverse proxies
+    app.set('trust proxy', 1);
+
     // Security middleware
     app.use(helmet());
     app.use(cors());

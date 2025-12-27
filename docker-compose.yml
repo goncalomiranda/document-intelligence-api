@@ -3,18 +3,18 @@ version: "3.8"
 services:
   document-intelligence-api:
     # Use pre-built image from Docker Hub
-    image: ${DOCKERHUB_USERNAME}/document-intelligence-api:latest
-    # Uncomment below to build locally instead
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    # image: gmiranda/document-intelligence-api:latest
+    # Build locally instead
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: document-intelligence-api
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3100:3100"
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=3100
       # API Keys
       - API_KEY_CARDOC=${API_KEY_CARDOC}
       - API_KEY_MORTGAGE=${API_KEY_MORTGAGE}
@@ -46,7 +46,7 @@ services:
           "--quiet",
           "--tries=1",
           "--spider",
-          "http://localhost:3001/api/v1/health",
+          "http://localhost:3100/api/v1/health",
         ]
       interval: 30s
       timeout: 10s
