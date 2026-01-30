@@ -15,6 +15,7 @@ export const config = {
         apiUrl: process.env.OLLAMA_API_URL || 'http://localhost:11434',
         model: process.env.OLLAMA_MODEL || 'llama3.2:3b',
         timeout: parseInt(process.env.OLLAMA_TIMEOUT || '60000', 10),
+        visionTimeout: parseInt(process.env.OLLAMA_VISION_TIMEOUT || '1200000', 10), // 20 minutes for vision/OCR models on CPU
         defaultPrompt: process.env.OLLAMA_DEFAULT_PROMPT || 'Analyze this document and provide a concise summary with key information.',
     },
 

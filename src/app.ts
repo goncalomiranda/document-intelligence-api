@@ -2,6 +2,8 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import documentRoutes from './routes/document.routes';
+import documentVLRoutes from './routes/document-vl.routes';
+import magicOCRRoutes from './routes/magic-ocr.routes';
 import { errorHandler } from './middleware/errorHandler.middleware';
 import logger from './utils/logger';
 
@@ -27,6 +29,8 @@ export const createApp = (): Application => {
 
     // API routes
     app.use('/api/v1', documentRoutes);
+    app.use('/api/v1/documents-vl', documentVLRoutes);
+    app.use('/api/v1/magic-ocr', magicOCRRoutes);
 
     // Root endpoint
     app.get('/', (_req, res) => {
@@ -37,6 +41,10 @@ export const createApp = (): Application => {
             endpoints: {
                 health: 'GET /api/v1/health',
                 analyze: 'POST /api/v1/documents/analyze',
+                healthVL: 'GET /api/v1/documents-vl/health',
+                analyzeVL: 'POST /api/v1/documents-vl/analyze (Vision Model)',
+                healthMagicOCR: 'GET /api/v1/magic-ocr/health',
+                analyzeMagicOCR: 'POST /api/v1/magic-ocr/analyze (deepseek-ocr)',
             },
         });
     });

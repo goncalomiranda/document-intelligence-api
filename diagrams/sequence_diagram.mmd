@@ -1,0 +1,75 @@
+sequenceDiagram
+    participant Client
+    participant API
+    participant Controller
+    participant Service
+    participant Tesseract
+    participant Ollama
+    participant LLM
+
+    Note over Client,LLM: Route 1: /api/v1/documents/analyze (Tesseract + LLM)
+    
+    Client->>API: POST /api/v1/documents/analyze<br/>(PDF or Image)
+    API->>Controller: DocumentController.analyzeDocument()
+    
+    alt PDF Upload
+        Controller->>Service: OCRService.extractTextFromPDF()
+        Service->>Service: Convert PDF → PNG (pdftocairo)
+        Service->>Tesseract: Tesseract.recognize(image, lang)
+        Tesseract-->>Service: Extracted Text
+        Service-->>Controller: OCRResult {text, timeSeconds}
+    else Image Upload
+        Controller->>Service: OCRService.extractTextFromImage()
+        Service->>Tesseract: Tesseract.recognize(image, lang)
+        Tesseract-->>Service: Extracted Text
+        Service-->>Controller: OCRResult {text, timeSeconds}
+    end
+    
+    Controller->>Service: LLMService.analyze(text, prompt)
+    Service->>LLM: POST /api/generate (llama3.2:3b)
+    LLM-->>Service: Analysis Result
+    Service-->>Controller: LLMResult {summary, timeSeconds}
+    Controller-->>Client: JSON Response {success, data}
+
+    Note over Client,LLM: Route 2: /api/v1/documents-vl/analyze (Dual OCR: Tesseract + Vision)
+    
+    Client->>API: POST /api/v1/documents-vl/analyze<br/>(PDF or Image)
+    API->>Controller: DocumentVLController.analyzeDocument()
+    
+    alt PDF Upload
+        Controller->>Controller: Convert PDF → PNG (pdftocairo)
+    end
+    
+    Controller->>Service: DualOCRService.analyzeImage()
+    
+    par Parallel OCR Execution (80s timeout)
+        Service->>Tesseract: runTesseractOCR(image, lang)
+        Tesseract-->>Service: Text 1 (fast, 2-5s)
+    and
+        Service->>Ollama: runVisionOCR(image, gemma3:4b)
+        Ollama-->>Service: Text 2 (slower, up to 80s)
+    end
+    
+    Service->>Service: combineOCRResults(text1, text2)
+    Service->>LLM: POST /api/generate<br/>(Combined Text + Context)
+    LLM-->>Service: Structured Analysis
+    Service-->>Controller: LLMResult {summary, timeSeconds}
+    Controller-->>Client: JSON Response {success, data}
+
+    Note over Client,LLM: Route 3: /api/v1/magic-ocr/analyze (Pure Vision OCR)
+    
+    Client->>API: POST /api/v1/magic-ocr/analyze<br/>(PDF or Image)
+    API->>Controller: MagicOCRController.analyzeDocument()
+    
+    alt PDF Upload
+        Controller->>Controller: Convert PDF → PNG (pdftocairo)
+    end
+    
+    Controller->>Service: MagicOCRService.analyzeImage()
+    Service->>Service: Optimize Image<br/>(resize + compress with Sharp)
+    Service->>Ollama: POST /api/generate<br/>(gemma3:4b vision model)<br/>Prompt: "Extract the text in the image"
+    Ollama-->>Service: Extracted Text
+    Service-->>Controller: LLMResult {summary, timeSeconds}
+    Controller-->>Client: JSON Response {success, data}
+
+    Note over Client,LLM: Key Differences:<br/>Route 1: Tesseract only (fast, printed text)<br/>Route 2: Dual OCR parallel (best accuracy, slow)<br/>Route 3: Pure vision model (handwritten/complex)
